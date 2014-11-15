@@ -38,7 +38,28 @@ Theta2_grad = zeros(size(Theta2));
 %         variable J. After implementing Part 1, you can verify that your
 %         cost function computation is correct by verifying the cost
 %         computed in ex4.m
-%
+
+% X = [ones(m,1) X];
+Y = eye(num_labels)(y,:);
+% Y = [Y(:, end) Y(:, 1:end-1)];
+
+a1 = [ones(m,1) X];
+
+z2 = a1 * Theta1';
+a2 = sigmoid(z2);
+a2 = [ones(m,1) a2];
+
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
+
+cost = -Y .* log(a3) - (1-Y) .* log(1-a3);
+J = sum(cost(:)) / m;
+
+Thr1 = Theta1(:,2:end);
+Thr2 = Theta2(:,2:end);
+
+J = J + (lambda/(2*m)) * ( sum(Thr1(:).^2) + sum(Thr2(:).^2) ); 
+
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
 %         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
@@ -54,6 +75,45 @@ Theta2_grad = zeros(size(Theta2));
 %               over the training examples if you are implementing it for the 
 %               first time.
 %
+
+Delta1 = 0; % zeros(size(Theta1));
+Delta2 = 0; % zeros(size(Theta2));
+
+% Theta1, Delta1 =  [25, 401]
+% Theta2, Delta2 =  [10, 26]
+% Thr1 = [25 400]
+% Thr2 = [10 25]
+
+for t = 1:m
+	a1t = [1 X(t,:)]; % [1 401]
+
+	z2 = Theta1 * a1t'; % [25, 1]
+	a2tp = sigmoid(z2);
+	a2t = [1; sigmoid(z2)]'; % [1 26]
+
+	z3 = Theta2 * a2t'; % [10 1]
+	a3t = sigmoid(z3)'; % [1 10]
+
+	yt = Y(m,:); % [1 10]
+
+	d3 = a3t - yt; % [1 10]
+	
+	d2 = (Thr2' * d3') .*  (a2tp .* (1-a2tp) ); % sigmoidGradieint(a2tp .* (1-a2tp));
+
+
+	% d2 = (d3 * Thr2)' .* sigmoidGradient(z2); % [1 25] 
+
+	Delta2 = Delta2 + (d3' * a2t);
+	Delta1 = Delta1 + (d2 * a1t);
+
+end
+
+Theta1_grad = Delta1/m;
+Theta2_grad = Delta2/m;
+
+sum(Theta1_grad(:))
+sum(Theta2_grad(:))
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -61,16 +121,6 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
-
-
-
-
-
-
-
-
-
-
 
 
 
